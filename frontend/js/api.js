@@ -45,7 +45,11 @@ const ApiService = {
       }
 
       if (!response.ok) {
-        const message = data?.message || data?.error || (typeof data === 'object' ? JSON.stringify(data) : data) || `Request failed (${response.status})`;
+        let message = data?.message || data?.error;
+        if (!message && typeof data === 'object' && data !== null) {
+          message = Object.entries(data).map(([k, v]) => `${k}: ${v}`).join('. ');
+        }
+        if (!message) message = typeof data === 'string' ? data : `Request failed (${response.status})`;
         throw new Error(message);
       }
 

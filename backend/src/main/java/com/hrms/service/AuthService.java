@@ -45,7 +45,14 @@ public class AuthService {
             throw new RuntimeException("Email is already in use!");
         }
 
-        Role role = (request.getRole() != null) ? request.getRole() : Role.EMPLOYEE;
+        Role role = request.getRole();
+        if (role == null) {
+            throw new RuntimeException("Role is required.");
+        }
+        if (role == Role.EMPLOYEE) {
+            throw new RuntimeException(
+                    "Employees cannot self-register. Ask Admin or HR to create your employee account with login credentials.");
+        }
 
         User user = new User(
                 request.getUsername(),
@@ -54,13 +61,7 @@ public class AuthService {
                 role
         );
 
-        user = userRepository.save(user);
-
-        if (role == Role.EMPLOYEE) {
-            employeeService.createEmployeeForSignup(user, request);
-        }
-
-        return user;
+        return userRepository.save(user);
     }
 
     public JwtResponse loginUser(LoginRequest request) {

@@ -25,24 +25,25 @@ public class TaskAssignmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found: " + employeeId));
         task.setAssignedTo(employee);
         task.setStatus(TaskAssignment.TaskStatus.ASSIGNED);
-        return taskRepository.save(task);
+        TaskAssignment saved = taskRepository.save(task);
+        return taskRepository.findByIdWithEmployee(saved.getId()).orElse(saved);
     }
 
     public List<TaskAssignment> getAllTasks() {
-        return taskRepository.findAll();
+        return taskRepository.findAllWithEmployee();
     }
 
     public List<TaskAssignment> getTasksByEmployee(Long employeeId) {
-        return taskRepository.findByAssignedToId(employeeId);
+        return taskRepository.findByAssignedToIdWithEmployee(employeeId);
     }
 
     public TaskAssignment getTaskById(Long id) {
-        return taskRepository.findById(id)
+        return taskRepository.findByIdWithEmployee(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + id));
     }
 
     public TaskAssignment updateTaskStatus(Long taskId, String status) {
-        TaskAssignment task = taskRepository.findById(taskId)
+        TaskAssignment task = taskRepository.findByIdWithEmployee(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
 
         try {
@@ -54,18 +55,20 @@ public class TaskAssignmentService {
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Invalid status: " + status);
         }
-        return taskRepository.save(task);
+        TaskAssignment saved = taskRepository.save(task);
+        return taskRepository.findByIdWithEmployee(saved.getId()).orElse(saved);
     }
 
     public TaskAssignment updateTask(Long id, TaskAssignment updated) {
-        TaskAssignment existing = taskRepository.findById(id)
+        TaskAssignment existing = taskRepository.findByIdWithEmployee(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + id));
         existing.setTitle(updated.getTitle());
         existing.setDescription(updated.getDescription());
         existing.setDueDate(updated.getDueDate());
         existing.setPriority(updated.getPriority());
         if (updated.getStatus() != null) existing.setStatus(updated.getStatus());
-        return taskRepository.save(existing);
+        TaskAssignment saved = taskRepository.save(existing);
+        return taskRepository.findByIdWithEmployee(saved.getId()).orElse(saved);
     }
 
     public void deleteTask(Long id) {

@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
   if (!Layout.init('dashboard')) return;
   renderRoleWelcome();
+  await loadEmployeeProfileCard();
   await loadDashboardStats();
 });
 
@@ -26,6 +27,41 @@ function renderRoleWelcome() {
   });
 }
 
+async function loadEmployeeProfileCard() {
+  if (AuthService.getRole() !== 'EMPLOYEE') return;
+
+  const card = document.getElementById('employee-profile-card');
+  const summary = document.getElementById('employee-profile-summary');
+  if (!card || !summary) return;
+
+  card.classList.remove('hidden');
+
+  try {
+    let empId = AuthService.getEmployeeId();
+    if (!empId) empId = await AuthService.refreshEmployeeId();
+
+    if (!empId) {
+      summary.innerHTML = '<p class="alert alert-warning">No employee profile linked. Contact HR/Admin to create your employee record with this login.</p>';
+      return;
+    }
+
+    const res = await ApiService.getMyEmployeeProfile();
+    const emp = Utils.extractData(res);
+    if (!emp) {
+      summary.textContent = 'Profile not found.';
+      return;
+    }
+
+    summary.innerHTML = `
+      <p><strong>${emp.firstName} ${emp.lastName}</strong> · ${emp.employeeCode || 'N/A'}</p>
+      <p>${emp.department} · ${emp.designation}</p>
+      <p>${emp.email} · ${emp.phone || '-'}</p>
+      <p>Status: <span class="badge badge-${(emp.employmentStatus || 'active').toLowerCase()}">${emp.employmentStatus || 'ACTIVE'}</span></p>`;
+  } catch (err) {
+    summary.innerHTML = `<p class="alert alert-error">${err.message}</p>`;
+  }
+}
+
 async function loadDashboardStats() {
   Utils.setLoading(true);
   const role = AuthService.getRole();
@@ -33,7 +69,9 @@ async function loadDashboardStats() {
   if (role === 'EMPLOYEE' && !empId) empId = await AuthService.refreshEmployeeId();
 
   try {
-    if (PERMISSIONS.can('employee.viewAll') || PERMISSIONS.can('employee.viewTeam') || role === 'EMPLOYEE') {
+    if (role === 'EMPLOYEE') {
+      document.getElementById('stat-employees').textContent = empId ? '1' : '0';
+    } else if (PERMISSIONS.can('employee.viewAll') || PERMISSIONS.can('employee.viewTeam')) {
       const empRes = await ApiService.getEmployees();
       const employees = Utils.extractData(empRes) || [];
       document.getElementById('stat-employees').textContent = employees.length;

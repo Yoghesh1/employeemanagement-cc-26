@@ -1,11 +1,13 @@
 package com.hrms.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "task_assignments")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class TaskAssignment {
 
     @Id
@@ -18,8 +20,9 @@ public class TaskAssignment {
     @Column(length = 1000)
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "assigned_to", nullable = false)
+    @JsonIgnoreProperties({"user"})
     private Employee assignedTo;
 
     @Column(name = "assigned_by")

@@ -19,7 +19,7 @@ public class SignupRequest {
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
-    private Role role = Role.EMPLOYEE;
+    private Role role;
 
     /** Employee profile fields (required when role = EMPLOYEE) */
     private String firstName;

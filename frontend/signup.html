@@ -12,10 +12,15 @@
     <div class="auth-card">
       <div class="auth-logo">
         <h1>HRMS</h1>
-        <p>Create your account</p>
+        <p>Staff account registration</p>
       </div>
       <h2>Register</h2>
       <div id="alert-container"></div>
+
+      <div class="auth-hint" style="margin-bottom:16px;">
+        <strong>Employees:</strong> You cannot sign up here. Admin or HR will create your account and give you username/password. Then use <a href="login.html">Login</a>.
+      </div>
+
       <form id="signup-form">
         <div class="form-group">
           <label for="username">Username</label>
@@ -34,35 +39,10 @@
           <select id="role" class="form-control" required>
             <option value="ADMIN">Admin</option>
             <option value="HR">HR</option>
-            <option value="MANAGER">Manager</option>
-            <option value="EMPLOYEE" selected>Employee</option>
+            <option value="MANAGER" selected>Manager</option>
           </select>
+          <small class="text-muted" style="display:block;margin-top:6px;">Admin/HR/Manager only. Employee accounts are created from the Employees page.</small>
         </div>
-
-        <div id="employee-profile-section">
-          <h4 style="margin:16px 0 8px;font-size:14px;color:#64748b;">Employee Profile</h4>
-          <div class="form-group">
-            <label for="firstName">First Name *</label>
-            <input type="text" id="firstName" class="form-control">
-          </div>
-          <div class="form-group">
-            <label for="lastName">Last Name *</label>
-            <input type="text" id="lastName" class="form-control">
-          </div>
-          <div class="form-group">
-            <label for="phone">Phone *</label>
-            <input type="text" id="phone" class="form-control">
-          </div>
-          <div class="form-group">
-            <label for="department">Department *</label>
-            <input type="text" id="department" class="form-control" placeholder="e.g. Engineering">
-          </div>
-          <div class="form-group">
-            <label for="designation">Designation *</label>
-            <input type="text" id="designation" class="form-control" placeholder="e.g. Software Engineer">
-          </div>
-        </div>
-
         <button type="submit" class="btn btn-primary btn-block">Create Account</button>
       </form>
       <div class="auth-footer">
@@ -79,48 +59,21 @@
   <script src="js/router.js"></script>
   <script src="js/utils.js"></script>
   <script>
-    const roleSelect = document.getElementById('role');
-    const profileSection = document.getElementById('employee-profile-section');
-    const profileFields = ['firstName', 'lastName', 'phone', 'department', 'designation'];
-
-    function toggleEmployeeFields() {
-      const isEmployee = roleSelect.value === 'EMPLOYEE';
-      profileSection.classList.toggle('hidden', !isEmployee);
-      profileFields.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.required = isEmployee;
-      });
-    }
-
-    roleSelect.addEventListener('change', toggleEmployeeFields);
-    toggleEmployeeFields();
-
     document.getElementById('signup-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const errors = Utils.validateRequired(e.target, [
         { id: 'username', label: 'Username' },
         { id: 'email', label: 'Email', type: 'email' },
-        { id: 'password', label: 'Password' }
+        { id: 'password', label: 'Password' },
+        { id: 'role', label: 'Role' }
       ]);
 
       const payload = {
         username: document.getElementById('username').value.trim(),
         email: document.getElementById('email').value.trim(),
         password: document.getElementById('password').value,
-        role: roleSelect.value
+        role: document.getElementById('role').value
       };
-
-      if (roleSelect.value === 'EMPLOYEE') {
-        profileFields.forEach(id => {
-          const el = document.getElementById(id);
-          if (!el?.value?.trim()) errors.push(`${id} is required for employee registration`);
-        });
-        payload.firstName = document.getElementById('firstName').value.trim();
-        payload.lastName = document.getElementById('lastName').value.trim();
-        payload.phone = document.getElementById('phone').value.trim();
-        payload.department = document.getElementById('department').value.trim();
-        payload.designation = document.getElementById('designation').value.trim();
-      }
 
       if (errors.length) {
         Utils.showAlert(errors.join('. '), 'error');
